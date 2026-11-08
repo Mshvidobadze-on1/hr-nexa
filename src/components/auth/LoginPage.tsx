@@ -69,7 +69,7 @@ export function LoginPage() {
       <div className="absolute top-1/2 left-10 w-[400px] h-[300px] bg-purple-600/15 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Top Header */}
-      <header className="px-6 sm:px-10 py-6 flex items-center justify-between z-10">
+      <header className="px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between z-10">
         <div className="flex items-center gap-3.5">
           {/* Interactive Logo: 3 consecutive clicks triggers Secret Admin Modal */}
           <div
@@ -107,7 +107,7 @@ export function LoginPage() {
 
       {/* Main Login Card */}
       <main className="flex-1 flex items-center justify-center p-4 z-10 my-4">
-        <div className="w-full max-w-[460px] bg-slate-950/85 backdrop-blur-2xl border border-slate-800/90 rounded-3xl p-8 sm:p-9 shadow-2xl space-y-6">
+        <div className="w-full max-w-[460px] bg-slate-950/85 backdrop-blur-2xl border border-slate-800/90 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-9 shadow-2xl space-y-5 sm:space-y-6">
           <div className="text-center space-y-1.5">
             <h1 className="text-2xl font-black text-white tracking-tight">ავტორიზაცია</h1>
             <p className="text-xs text-slate-400">

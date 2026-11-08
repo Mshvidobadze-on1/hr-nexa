@@ -117,19 +117,19 @@ export function FloatingAiChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 select-none">
+    <div className="select-none">
       {/* Floating Trigger Launcher Button (When closed) */}
       {!isAiChatOpen && (
         <button
           onClick={toggleAiChat}
           type="button"
-          className="group flex items-center gap-3 px-4 py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer border border-white/20"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 group flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer border border-white/20"
         >
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
-              <Bot className="w-5 h-5 animate-bounce" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+              <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-indigo-700 animate-pulse" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-indigo-700 animate-pulse" />
           </div>
           <div className="text-left hidden sm:block pr-1">
             <div className="flex items-center gap-1.5 text-xs font-black">
@@ -143,12 +143,12 @@ export function FloatingAiChat() {
 
       {/* Floating Chat Window (When Open) */}
       {isAiChatOpen && (
-        <div className="w-[94vw] sm:w-[420px] h-[580px] max-h-[85vh] rounded-3xl shadow-2xl border border-indigo-500/30 bg-slate-900/95 backdrop-blur-2xl flex flex-col overflow-hidden text-white animate-in slide-in-from-bottom-6 duration-200">
+        <div className="fixed inset-x-3 bottom-3 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[420px] w-auto h-[530px] sm:h-[580px] max-h-[82vh] z-50 rounded-2xl sm:rounded-3xl shadow-2xl border border-indigo-500/30 bg-slate-900/95 backdrop-blur-2xl flex flex-col overflow-hidden text-white animate-in slide-in-from-bottom-6 duration-200">
           {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-900 via-slate-900 to-purple-950 p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-indigo-900 via-slate-900 to-purple-950 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 shadow-inner">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 shadow-inner">
                   <Bot className="w-5 h-5 text-indigo-300" />
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-900" />
@@ -160,7 +160,9 @@ export function FloatingAiChat() {
                     ONLINE
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-300">საქართველოს შრომის კოდექსი & HR მრჩეველი</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-300 truncate max-w-[200px]">
+                  შრომის კოდექსი & HR მრჩეველი
+                </p>
               </div>
             </div>
 
@@ -190,7 +192,7 @@ export function FloatingAiChat() {
           </div>
 
           {/* Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
+          <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto space-y-3 text-xs">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -202,7 +204,7 @@ export function FloatingAiChat() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[82%] rounded-2xl p-3.5 space-y-1.5 shadow-sm leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl p-3 sm:p-3.5 space-y-1.5 shadow-sm leading-relaxed ${
                     msg.sender === 'user'
                       ? 'bg-indigo-600 text-white rounded-tr-none font-medium'
                       : 'bg-slate-800/90 border border-slate-700/80 text-slate-200 rounded-tl-none whitespace-pre-line'
@@ -229,7 +231,7 @@ export function FloatingAiChat() {
                           <button
                             key={idx}
                             onClick={() => handleSend(q)}
-                            className="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-indigo-900/60 border border-slate-700 hover:border-indigo-500/40 text-[11px] text-slate-300 hover:text-white transition text-left cursor-pointer"
+                            className="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-indigo-900/60 border border-slate-700 hover:border-indigo-500/40 text-[10px] text-slate-300 hover:text-white transition text-left cursor-pointer"
                           >
                             {q}
                           </button>
@@ -251,7 +253,7 @@ export function FloatingAiChat() {
           </div>
 
           {/* Quick Chip Shortcuts above Input */}
-          <div className="px-3 pt-2 pb-1 border-t border-slate-800/80 flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
+          <div className="px-3 pt-2 pb-1 border-t border-slate-800/80 flex items-center gap-1.5 overflow-x-auto text-[10px] sm:text-[11px] no-scrollbar">
             <button
               onClick={() => handleSend('რამდენი დღეა წლიური შვებულება?')}
               className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
@@ -262,7 +264,7 @@ export function FloatingAiChat() {
               onClick={() => handleSend('როგორ იანგარიშება 2%+2% საპენსიო?')}
               className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
             >
-              💰 საპენსიო & გადასახადები
+              💰 საპენსიო
             </button>
             <button
               onClick={() => handleSend('როგორ გამოვიტანო ხელფასი EWA-ით?')}
@@ -278,21 +280,21 @@ export function FloatingAiChat() {
               e.preventDefault();
               handleSend();
             }}
-            className="p-3 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2"
+            className="p-2.5 sm:p-3 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="დასვით შეკითხვა შრომის კოდექსზე..."
-              className="flex-1 px-3.5 py-2.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-indigo-500"
+              className="flex-1 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-800/90 border border-slate-700 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-indigo-500"
             />
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="w-10 h-10 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center shadow-md transition cursor-pointer shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center shadow-md transition cursor-pointer shrink-0"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </form>
         </div>

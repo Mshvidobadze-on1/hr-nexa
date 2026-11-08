@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useHR, ModuleId } from '@/context/HRContext';
 import {
   ShieldAlert,
@@ -30,6 +30,8 @@ import {
   Smartphone,
   Monitor,
   TrendingUp,
+  Menu,
+  X,
 } from 'lucide-react';
 import { MobileAppFrame } from '@/components/mobile/MobileAppFrame';
 import { FloatingAiChat } from '@/components/ai/FloatingAiChat';
@@ -49,35 +51,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     hasPermission,
   } = useHR();
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const pendingCount = leaveRequests.filter(
     (r) =>
       r.status === 'მენეჯერის დასტურის მოლოდინში' || r.status === 'HR-ის დასტურის მოლოდინში'
   ).length;
 
-  const formatTimer = (sec: number) => {
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(
-      2,
-      '0'
-    )}`;
-  };
-
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isLineManager = currentUser?.role === 'LINE_MANAGER';
-  const isEmployee = currentUser?.role === 'EMPLOYEE';
 
-  const navItems: {
+  interface NavItem {
     id: ModuleId;
     label: string;
     subtitle: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon: any;
     visible: boolean;
     badge?: number;
-    tag?: string;
-  }[] = [
+  }
+
+  const navItems: NavItem[] = [
     {
       id: 'super-admin',
       label: 'სისტემის მართვა',
@@ -189,10 +183,76 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const visibleNav = navItems.filter((item) => item.visible);
   const activeItem = navItems.find((n) => n.id === activeModule);
 
+  const renderNavLinks = (isMobile = false) => (
+    <nav className="flex-1 p-3.5 space-y-1 overflow-y-auto">
+      <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+        <span>
+          {isSuperAdmin
+            ? 'Super Admin / Owner'
+            : isHrAdmin
+            ? 'HR Manager Portal'
+            : isLineManager
+            ? 'Line Manager Portal'
+            : 'Employee Workspace'}
+        </span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      </div>
+
+      {visibleNav.map((item) => {
+        const Icon = item.icon;
+        const isActive = activeModule === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveModule(item.id);
+              if (isMobile) setMobileMenuOpen(false);
+            }}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-left transition-all duration-150 group cursor-pointer ${
+              isActive
+                ? item.id === 'super-admin'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-950/50'
+                  : 'bg-indigo-600 text-white shadow-lg shadow-indigo-950/50'
+                : 'text-slate-300 hover:bg-slate-900/90 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className={`p-1.5 rounded-xl transition ${
+                  isActive
+                    ? 'bg-white/20 text-white'
+                    : 'bg-slate-900 text-slate-400 group-hover:text-indigo-400 group-hover:bg-slate-800'
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+              </div>
+              <div className="min-w-0 truncate">
+                <div className="font-bold text-xs truncate">{item.label}</div>
+                <div
+                  className={`text-[10px] truncate ${
+                    isActive ? 'text-indigo-100' : 'text-slate-400'
+                  }`}
+                >
+                  {item.subtitle}
+                </div>
+              </div>
+            </div>
+
+            {item.badge !== undefined && (
+              <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-sm">
+                {item.badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </nav>
+  );
+
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans selection:bg-indigo-600 selection:text-white">
-      {/* Sidebar */}
-      <aside className="w-72 bg-slate-950 text-slate-100 flex flex-col shrink-0 border-r border-slate-800/90 shadow-2xl z-20">
+      {/* 1. Desktop Permanent Sidebar (Hidden on < lg) */}
+      <aside className="hidden lg:flex w-72 bg-slate-950 text-slate-100 flex-col shrink-0 border-r border-slate-800/90 shadow-2xl z-20">
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -214,160 +274,94 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 p-3.5 space-y-1 overflow-y-auto">
-          <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            <span>
-              {isSuperAdmin
-                ? 'Super Admin / Owner'
-                : isHrAdmin
-                ? 'HR Manager Portal'
-                : isLineManager
-                ? 'Line Manager Portal'
-                : 'Employee Workspace'}
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          </div>
+        {renderNavLinks(false)}
 
-          {visibleNav.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeModule === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveModule(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-left transition-all duration-150 group cursor-pointer ${
-                  isActive
-                    ? item.id === 'super-admin'
-                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-950/50'
-                      : 'bg-indigo-600 text-white shadow-lg shadow-indigo-950/50'
-                    : 'text-slate-300 hover:bg-slate-900/90 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`p-1.5 rounded-xl transition ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-900 text-slate-400 group-hover:text-indigo-400 group-hover:bg-slate-800'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                  </div>
-                  <div className="min-w-0 truncate">
-                    <div className="font-bold text-xs truncate flex items-center gap-1.5">
-                      <span>{item.label}</span>
-                      {item.tag && (
-                        <span
-                          className={`text-[9px] px-1.5 py-0.2 rounded-md font-extrabold ${
-                            item.tag === 'AI'
-                              ? 'bg-cyan-500/20 text-cyan-300'
-                              : item.tag === 'EWA'
-                              ? 'bg-emerald-500/20 text-emerald-300'
-                              : 'bg-amber-500/20 text-amber-300'
-                          }`}
-                        >
-                          {item.tag}
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className={`text-[10px] truncate ${
-                        isActive ? 'text-indigo-100' : 'text-slate-400'
-                      }`}
-                    >
-                      {item.subtitle}
-                    </div>
-                  </div>
-                </div>
-
-                {item.badge !== undefined && (
-                  <span
-                    className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
-                      isActive ? 'bg-white text-indigo-700' : 'bg-rose-500 text-white animate-pulse'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Live Attendance Clock-In Widget in Sidebar */}
-        {hasPermission('canClockInOut') && (
-          <div className="p-4 mx-3 mb-3 rounded-2xl bg-slate-900/90 border border-slate-800/90 text-center space-y-2.5">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                <span>დღევანდელი ცვლა</span>
-              </span>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  clockedInSession.active
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-slate-800 text-slate-400'
-                }`}
-              >
-                {clockedInSession.active ? 'აქტიური' : 'დასრულებული'}
-              </span>
-            </div>
-            <div className="text-2xl font-black font-mono tracking-wider text-emerald-400">
-              {formatTimer(clockedInSession.elapsedSeconds)}
-            </div>
-            <button
-              onClick={toggleClockInOut}
-              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer active:scale-98 ${
-                clockedInSession.active
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/40'
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40'
-              }`}
-            >
-              {clockedInSession.active
-                ? 'წასვლის დაფიქსირება (Clock-Out)'
-                : 'მოსვლის დაფიქსირება (Clock-In)'}
-            </button>
-          </div>
-        )}
-
-        {/* Company Footer */}
+        {/* Footer info */}
         <div className="p-4 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-          <span className="flex items-center gap-1.5 font-medium">
-            <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-            HR NEXA Enterprise Cloud
-          </span>
-          <span className="text-emerald-400 font-mono text-[10px] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-            v3.0
+          <span>შპს „ეიჩარ ნექსა“</span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+            v3.2
           </span>
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* 2. Mobile Drawer Backdrop & Drawer (Visible on < lg when opened) */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 lg:hidden transition-opacity"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-slate-950 text-slate-100 flex flex-col shadow-2xl border-r border-slate-800/90 lg:hidden transform transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Mobile Drawer Header */}
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-emerald-400 flex items-center justify-center text-white font-black text-lg">
+              N
+            </div>
+            <div>
+              <span className="font-black text-base text-white">HR NEXA</span>
+              <p className="text-[10px] text-slate-400">პორტალის მენიუ</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Drawer Links */}
+        {renderNavLinks(true)}
+
+        {/* Drawer Footer Logout */}
+        <div className="p-4 border-t border-slate-800">
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold text-xs transition"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>სისტემიდან გასვლა</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* 3. Main Viewport Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
-        <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/90 px-6 sm:px-8 py-3.5 sticky top-0 z-30 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-          {/* Active Module Title */}
-          <div className="flex items-center gap-4">
-            <div>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 sm:px-6 lg:px-8 py-3 sticky top-0 z-30 flex items-center justify-between gap-3 shadow-xs">
+          {/* Left: Mobile Hamburger & Current Page Title */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shrink-0"
+              title="მენიუ"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate flex items-center gap-2">
                 {activeItem?.label || 'მთავარი დაფა'}
               </h2>
-              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
                 <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                 <span>საანგარიშო პერიოდი:</span>
                 <strong className="text-slate-800">ნოემბერი 2026</strong>
-                <span className="text-slate-300">•</span>
-                <span className="hidden md:inline text-slate-500">
-                  საქართველოს შრომის კოდექსი & RS.ge
-                </span>
               </div>
             </div>
           </div>
 
-          {/* Right Tools: View Device Switcher & User Profile & Logout */}
-          <div className="flex items-center gap-3">
-            {/* Desktop / Mobile App Switcher */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-bold">
+          {/* Right Tools: Switcher, User Pill, Logout */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Desktop / Mobile App Switcher (hidden on mobile) */}
+            <div className="hidden md:flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-bold">
               <button
                 onClick={() => setViewDevice('desktop')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer ${
@@ -375,10 +369,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     ? 'bg-white text-indigo-700 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="ვებ აპლიკაცია (Desktop)"
               >
                 <Monitor className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Web (Desktop)</span>
+                <span>Web (Desktop)</span>
               </button>
               <button
                 onClick={() => setViewDevice('mobile')}
@@ -387,7 +380,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     ? 'bg-indigo-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="მობილური აპლიკაციის ხედი (iOS & Android)"
               >
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>Mobile App</span>
@@ -395,9 +387,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* User Profile Pill */}
-            <div className="flex items-center gap-3 px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/90 rounded-2xl transition">
+            <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 bg-slate-50 border border-slate-200/90 rounded-2xl">
               <div
-                className={`relative w-8 h-8 rounded-xl font-bold text-white flex items-center justify-center text-xs shadow-sm ${
+                className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl font-bold text-white flex items-center justify-center text-xs shadow-sm ${
                   isSuperAdmin
                     ? 'bg-gradient-to-tr from-purple-700 to-indigo-600'
                     : isHrAdmin
@@ -414,35 +406,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
               </div>
-              <div className="text-left">
-                <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                  <span>{currentUser?.fullName}</span>
+              <div className="text-left hidden sm:block">
+                <div className="font-bold text-xs text-slate-900 leading-tight truncate max-w-[130px]">
+                  {currentUser?.fullName}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`inline-block px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
-                      isSuperAdmin
-                        ? 'bg-purple-100 text-purple-800'
-                        : isHrAdmin
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : isLineManager
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-slate-200 text-slate-800'
-                    }`}
-                  >
-                    {isSuperAdmin
-                      ? 'System Owner'
-                      : isHrAdmin
-                      ? 'HR Manager / Admin'
-                      : isLineManager
-                      ? 'Line Manager'
-                      : 'Employee'}
-                  </span>
-                  {currentUser?.department && (
-                    <span className="text-[10px] text-slate-500 hidden lg:inline">
-                      • {currentUser.department}
-                    </span>
-                  )}
+                <div className="text-[10px] text-slate-500 font-medium truncate max-w-[130px]">
+                  {isSuperAdmin
+                    ? 'System Owner'
+                    : isHrAdmin
+                    ? 'HR Manager'
+                    : isLineManager
+                    ? 'Line Manager'
+                    : 'Employee'}
                 </div>
               </div>
             </div>
@@ -451,7 +426,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {hasPermission('canApproveLeaves') && (
               <button
                 onClick={() => setActiveModule('leaves')}
-                className="relative p-2.5 rounded-2xl border border-slate-200/90 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
+                className="relative p-2 sm:p-2.5 rounded-2xl border border-slate-200/90 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
                 title="დასადასტურებელი მოთხოვნები"
               >
                 <Bell className="w-4 h-4" />
@@ -466,30 +441,84 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Logout Button */}
             <button
               onClick={logout}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border border-slate-200/90 hover:border-rose-300 hover:bg-rose-50 text-slate-700 hover:text-rose-700 text-xs font-bold transition cursor-pointer"
+              className="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-2 rounded-2xl border border-slate-200/90 hover:border-rose-300 hover:bg-rose-50 text-slate-700 hover:text-rose-700 text-xs font-bold transition cursor-pointer"
               title="სისტემიდან გასვლა"
             >
               <LogOut className="w-4 h-4 text-slate-500 hover:text-rose-600" />
-              <span>გასვლა</span>
+              <span className="hidden sm:inline">გასვლა</span>
             </button>
           </div>
         </header>
 
-        {/* Page Body */}
-        <main className="flex-1 p-6 sm:p-8 max-w-[1600px] w-full mx-auto space-y-6">
+        {/* Page Body: pb-24 on mobile ensures bottom nav never covers content */}
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-5 sm:space-y-6 pb-24 lg:pb-8">
           {viewDevice === 'mobile' ? <MobileAppFrame /> : children}
         </main>
       </div>
+
+      {/* 4. Mobile Bottom Navigation Bar (Visible only on < lg) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 lg:hidden flex items-center justify-around px-1 py-2 text-slate-400 shadow-2xl">
+        <button
+          onClick={() => setActiveModule('dashboard')}
+          className={`flex flex-col items-center gap-1 transition cursor-pointer ${
+            activeModule === 'dashboard' ? 'text-indigo-400 font-black' : 'hover:text-slate-200'
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="text-[10px]">მთავარი</span>
+        </button>
+
+        <button
+          onClick={() => setActiveModule('social-feed')}
+          className={`flex flex-col items-center gap-1 transition cursor-pointer ${
+            activeModule === 'social-feed' ? 'text-indigo-400 font-black' : 'hover:text-slate-200'
+          }`}
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-[10px]">კედელი</span>
+        </button>
+
+        <button
+          onClick={() => setActiveModule('leaves')}
+          className={`relative flex flex-col items-center gap-1 transition cursor-pointer ${
+            activeModule === 'leaves' ? 'text-indigo-400 font-black' : 'hover:text-slate-200'
+          }`}
+        >
+          <Palmtree className="w-5 h-5" />
+          <span className="text-[10px]">შვებულება</span>
+          {pendingCount > 0 && (
+            <span className="absolute top-0 right-1 w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveModule('ess')}
+          className={`flex flex-col items-center gap-1 transition cursor-pointer ${
+            activeModule === 'ess' ? 'text-indigo-400 font-black' : 'hover:text-slate-200'
+          }`}
+        >
+          <UserCircle className="w-5 h-5" />
+          <span className="text-[10px]">კაბინეტი</span>
+        </button>
+
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition cursor-pointer"
+        >
+          <Menu className="w-5 h-5" />
+          <span className="text-[10px]">მენიუ</span>
+        </button>
+      </nav>
 
       {/* Floating AI Chat Assistant */}
       <FloatingAiChat />
 
       {/* Live Toast Notifications */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none">
+      <div className="fixed bottom-20 sm:bottom-5 right-3.5 sm:right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-start gap-3 p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-800 animate-in fade-in slide-in-from-bottom-4"
+            className="pointer-events-auto flex items-start gap-3 p-3.5 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-800 animate-in fade-in slide-in-from-bottom-4"
           >
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div className="text-xs">
